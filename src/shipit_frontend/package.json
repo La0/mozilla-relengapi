@@ -1,0 +1,51 @@
+{
+  "name": "shipit_frontend",
+  "version": "0.1.0",
+  "description": "ShipIt frontend",
+  "main": "src/index.js",
+  "author": "Bastien Abadie <bastien@nextcairn.com>",
+  "repository": "https://github.com/garbas/build-relengapi",
+  "license": "MPL-2.0",
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "config": {
+    "entry": "src/run.js",
+    "html": {
+      "title": "ShipIt Frontend",
+      "description": "Tools to empower the Release Management team",
+      "author": "Mozilla RelMan Team",
+      "head": "<link href=\"https://fonts.googleapis.com/css?family=Fira+Sans:400,300,500\" rel=\"stylesheet\" type=\"text/css\"\\>"
+    }
+  },
+  "scripts": {
+    "build": "neo build",
+    "start": "neo start --port 5500",
+    "test": "neo test"
+  },
+  "keywords": [
+    "mozilla",
+    "shipit",
+    "relengapi"
+  ],
+  "dependencies": {
+    "bootstrap": "4.0.0-alpha.2",
+    "classnames": "2.2.5",
+    "expose-loader": "0.7.1",
+    "isomorphic-fetch": "2.2.1",
+    "jquery": "2.2.3",
+    "@garbas/mozilla-neo": "1.0.2",
+    "react": "15.0.2",
+    "react-addons-test-utils": "15.0.2",
+    "react-dom": "15.0.2",
+    "react-redux": "4.4.5",
+    "react-router": "2.4.0",
+    "react-router-redux": "4.0.4",
+    "redux": "3.5.2",
+    "redux-saga": "0.10.4",
+    "tether": "1.3.2"
+  },
+  "devDependencies": {
+    "chai-immutable": "^1.5.4"
+  }
+}

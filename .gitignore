@@ -18,3 +18,5 @@
 /src/relengapi_tools/.coverage
 /src/relengapi_tools/build
 /src/relengapi_tools/node_modules
+/src/shipit_frontend/node_modules
+/src/shipit_frontend/build
