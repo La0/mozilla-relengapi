@@ -1,11 +1,11 @@
 import App from '@garbas/mozilla-neo';
 import Layout, { routes } from './layout';
 import createSagaMiddleware from 'redux-saga';
-
+import * as dashboard from './dashboard';
 
 export const sagas = function*() {
   yield [
-    //...clobberer.sagas
+    ...dashboard.sagas
   ]
 };
 
@@ -16,7 +16,7 @@ export const middleware = [
 ];
 
 export const reducers = {
-  //clobberer: clobberer.reducers
+  dashboard: dashboard.reducers
 };
 
 export const initialState = {

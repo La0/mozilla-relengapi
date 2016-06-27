@@ -12,10 +12,12 @@ const services = routes.keySeq()
 
 export const Home = () => (
   <div>
-    <div id="banner-home">
-      <div className="container">
-        Ship it dashboard...
-      </div>
+    <div className="container">
+      This is the home page.
+      <br />
+      <Link to="/dashboard" className="btn btn-primary">
+        Go to dashboard
+      </Link>
     </div>
   </div>
 )

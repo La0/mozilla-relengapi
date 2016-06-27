@@ -8,6 +8,7 @@ const NOOP = () => null;
 
 export const routes = fromJS({
   home: { path: '/', title: 'ShipIt' },
+  dashboard: { path: '/dashboard', title: 'Dashboard' },
 });
 
 
@@ -33,7 +34,7 @@ export const Layout = ({ children=NOOP, current_route={} }) => (
               to={routes.getIn(['home', 'path'])}>
           {routes.getIn(['home', 'title'])}
         </Link>
-        <div className="collapse navbar-toggleable-sm navbar-collapse pull-right">
+        <div className="collapse navbar-toggleable-sm navbar-collapse">
           <ul className="nav navbar-nav">
           {
             routes.keySeq()

@@ -64,27 +64,8 @@ $headings-font-weight: 300;
 }
 
 
-#content {
-    #banner-not-home {
-        background-color: $developer-blue;
-        height: 10px;
-    }
-    #banner-home {
-        background-color: $developer-blue;
-        min-height: 200px;
-        color: $white;
-
-        .container {
-            font-size: 34px;
-            padding: 73px 0;
-            margin: 0 auto;
-            text-align: center;
-            line-height: 54px;
-        }
-    }
-    .container {
-        margin: 1em auto;
-    }
+#dashboard {
+    background: red;
 }
 
 .linked-card {
