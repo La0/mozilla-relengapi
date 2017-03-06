@@ -1,0 +1,24 @@
+{
+  "name": "neutrino-preset-elm",
+  "version": "0.1.0",
+  "description": "Neutrino preset for building elm application in Mozilla releng services",
+  "main": "src/index.js",
+  "keywords": [
+    "neutrino",
+    "neutrino-preset",
+    "elm"
+  ],
+  "author": "Bastien Abadie <babadie@mozilla.com>",
+  "license": "MPL-2.0",
+  "repository": "mozilla-releng/services",
+  "dependencies": {
+    "deepmerge": "*",
+    "elm-webpack-loader": "3.0.6",
+    "extract-text-webpack-plugin": "2.1.0",
+    "html-webpack-plugin": "*",
+    "html-webpack-template": "*"
+  },
+  "peerDependencies": {
+    "neutrino": "^4.0.0"
+  }
+}

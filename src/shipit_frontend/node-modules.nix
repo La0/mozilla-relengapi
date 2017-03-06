@@ -9,12 +9,8 @@ let
     inherit (pkgs) stdenv python utillinux runCommand writeTextFile;
     inherit nodejs;
   };
-  nodeModules = import ./node-modules-generated.nix {
-    inherit (pkgs) fetchurl fetchgit;
-    inherit nodeEnv;
-  };
-in nodeModules // {
-  mozilla-neo = nodeModules.mozilla-neo.override (old: {
-    dontNpmInstall = true;
-  });
+in
+import ./node-modules-generated.nix {
+  inherit (pkgs) fetchurl fetchgit;
+  inherit nodeEnv;
 }

@@ -1,3 +1,4 @@
+/*
 const fs = require('fs');
 const config_type = process.argv.indexOf('start') !== -1 ? 'dev' : 'prod';
 const config = require('mozilla-neo/config/webpack.' + config_type);
@@ -11,11 +12,17 @@ config.plugins = config.plugins.filter(function(plugin) {
 
 
 // extract css into separate file (due to CSP)
-config.plugins.push(new ExtractTextPlugin("[name].css"));
+const extractor = new ExtractTextPlugin({
+  filename: "[name].css"
+});
+config.plugins.push(extractor);
 config.module.loaders = config.module.loaders.map(function(loader) {
   if ("something.scss".match(loader.test)) {
     delete loader.loaders;
-    loader.loader = ExtractTextPlugin.extract("style-loader", "css-loader!sass-loader");
+    loader.loaders = extractor.extract({
+      fallback: "style-loader",
+      use: ["css-loader", "sass-loader"],
+    });
   }
   return loader;
 });
@@ -45,3 +52,4 @@ if (config_type === 'dev') {
 }
 
 module.exports = config;
+*/

@@ -361,12 +361,14 @@ in rec {
           for item in ${builtins.concatStringsSep " " (builtins.attrValues node_modules)}; do
             ln -s $item/lib/node_modules/* ./node_modules
           done
-          export PATH=./node_modules/mozilla-neo/bin/:$PATH
-          export NODE_PATH=$PWD/node_modules/mozilla-neo/node_modules:$NODE_PATH
+
+          # Add neutrino modules in node path
+          export NODE_PATH=$PWD/node_modules/neutrino/node_modules:$NODE_PATH
+          export NODE_PATH=$PWD/node_modules/neutrino-preset-web/node_modules:$NODE_PATH
         '';
 
         buildPhase = ''
-          ./node_modules/mozilla-neo/bin/neo build --config webpack.config.js
+          neutrino build
         '';
 
         doCheck = true;
@@ -374,19 +376,18 @@ in rec {
         checkPhase = ''
           if [ -d src/ ]; then
             echo "----------------------------------------------------------"
-            echo "---  Running ... elm-format-0.17 src/ --validate  --------"
+            echo "---  Running ... elm-format-0.18 src/ --validate  --------"
             echo "----------------------------------------------------------"
-            elm-format-0.17 src/ --validate
+            elm-format-0.18 src/ --validate
           fi
           if [ -e Main.elm ]; then
             echo "----------------------------------------------------------"
-            echo "---  Running ... elm-format-0.17 ./*.elm --validate  -----"
+            echo "---  Running ... elm-format-0.18 ./*.elm --validate  -----"
             echo "----------------------------------------------------------"
-            elm-format-0.17 ./*.elm --validate
+            elm-format-0.18 ./*.elm --validate
           fi
           echo "Everything OK!"
           echo "----------------------------------------------------------"
-          # TODO: neo test
         '';
 
         installPhase = ''
@@ -411,6 +412,7 @@ in rec {
         passthru.update = writeScript "update-${name}" ''
           export SSL_CERT_FILE="${cacert}/etc/ssl/certs/ca-bundle.crt"
           pushd ${src_path} >> /dev/null
+					set -x
           ${node2nix}/bin/node2nix \
             --composition node-modules.nix \
             --input node-modules.json \
@@ -418,6 +420,7 @@ in rec {
             --node-env node-env.nix \
             --flatten \
             --pkg-name nodejs-6_x
+
           rm -rf elm-stuff
           ${elmPackages.elm}/bin/elm-package install -y
           ${elm2nix}/bin/elm2nix elm-packages.nix
