@@ -19,6 +19,7 @@ import TaskclusterLogin as User
 import BugzillaLogin as Bugzilla
 import Hawk
 import App.Contributor as ContribEditor exposing (Contributor, decodeContributor, viewContributor)
+import App.Merges as Merges
 
 
 -- Models
@@ -117,6 +118,7 @@ type alias Model =
     , -- Backend base endpoint
       backend_uplift_url : String
     , contrib_editor : ContribEditor.Model
+    , merges : Merges.Model
     }
 
 
@@ -140,22 +142,28 @@ type
     | HawkRequest Hawk.Msg
       -- Contributor editor extension
     | ContribEditorMsg ContribEditor.Msg
+      -- Merges extension
+    | MergesMsg Merges.Msg
 
 
 init : String -> ( Model, Cmd Msg )
 init backend_uplift_url =
     -- Init empty model
     let
-        ( contrib_editor, cmd ) =
+        ( contrib_editor, contrib_cmd ) =
             ContribEditor.init backend_uplift_url
+        ( merges, merges_cmd ) =
+            Merges.init backend_uplift_url
     in
         ( { all_analysis = NotAsked
           , current_analysis = NotAsked
           , backend_uplift_url = backend_uplift_url
           , contrib_editor = contrib_editor
+          , merges = merges
           }
         , Cmd.batch
-            [ Cmd.map ContribEditorMsg cmd
+            [ Cmd.map ContribEditorMsg contrib_cmd
+            , Cmd.map MergesMsg merges_cmd
             ]
         )
 
@@ -178,6 +186,9 @@ routeHawkRequest response route =
 
         "Contributor" ->
             Cmd.map ContribEditorMsg (Cmd.map ContribEditor.UpdatedContributor response)
+
+        "Merges" ->
+            Cmd.map MergesMsg (Cmd.map Merges.LoadedMerges response)
 
         _ ->
             Cmd.none
@@ -316,6 +327,15 @@ update msg model user bugzilla =
             in
                 ( { newModel | contrib_editor = editor }
                 , Cmd.map ContribEditorMsg cmd
+                )
+
+        MergesMsg mergeMsg ->
+            let
+                ( merges, cmd ) =
+                    Merges.update mergeMsg model.merges user
+            in
+                ( { model | merges = merges }
+                , Cmd.map MergesMsg cmd
                 )
 
 
@@ -760,15 +780,16 @@ view model bugzilla =
             div [ class "alert alert-danger" ] [ text ("Error: " ++ toString err) ]
 
         Success analysis ->
-            viewAnalysis model.contrib_editor bugzilla analysis
+            viewAnalysis model bugzilla analysis
 
 
-viewAnalysis : ContribEditor.Model -> Bugzilla.Model -> Analysis -> Html Msg
-viewAnalysis editor bugzilla analysis =
+viewAnalysis : Model -> Bugzilla.Model -> Analysis -> Html Msg
+viewAnalysis model bugzilla analysis =
     div []
-        [ Html.map ContribEditorMsg (ContribEditor.viewModal editor)
+        [ Html.map ContribEditorMsg (ContribEditor.viewModal model.contrib_editor)
+        , Html.map MergesMsg (Merges.viewModal model.merges)
         , h1 [] [ text ("Listing all " ++ analysis.name ++ " " ++ (toString analysis.version) ++ " uplifts for review:") ]
-        , div [ class "bugs" ] (List.map (viewBug editor bugzilla) analysis.bugs)
+        , div [ class "bugs" ] (List.map (viewBug model.contrib_editor bugzilla) analysis.bugs)
         ]
 
 
@@ -881,7 +902,11 @@ viewBugDetails bug =
                 _ ->
                     span [] []
             , h5 [] [ text "Patches" ]
-            , div [ class "patches" ] (List.map viewPatch (Dict.toList bug.patches))
+            , div [ class "patches" ] (
+              (List.map viewPatch (Dict.toList bug.patches))
+              ++ [ p [] [
+                          span [ class "btn btn-sm", onClick (MergesMsg (Merges.LoadMerges bug.bugzilla_id))  ] [ text "View merge tests" ]
+              ]])
             , viewFlags bug
             , -- Start editing
               div [ class "actions list-group" ]

@@ -302,7 +302,7 @@ def update_contributor(contributor_id):
     return serialize_contributor(contributor)
 
 
-@auth.require_scopes(SCOPES_BOT)
+@auth.require_scopes([SCOPES_BOT, SCOPES_USER])
 def list_patch_status(bugzilla_id):
     """
     List all patches status for a bug

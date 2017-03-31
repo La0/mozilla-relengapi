@@ -185,5 +185,6 @@ def serialize_patch_status(patch_status):
         'revision_parent': patch_status.revision_parent,
         'branch': patch_status.branch,
         'status': str(patch_status.status),
+        'message': patch_status.message,
         'created': patch_status.created,
     }
