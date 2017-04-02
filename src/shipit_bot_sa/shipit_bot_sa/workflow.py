@@ -9,12 +9,8 @@ from cli_common.pulse import create_consumer, run_consumer
 from cli_common.taskcluster import TaskclusterClient
 from libmozdata import bugzilla
 
-import asyncio
-
 MOZREVIEW_URL_PATTERN = 'https://reviewboard.mozilla.org/r/([0-9]+)/'
 REPO_DIR = ''
-
-import pdb
 
 
 class PulseWorkflow(object):
@@ -80,7 +76,6 @@ class PulseWorkflow(object):
 
         self.analyzebug()
 
-
         # Ack the message so it is removed from the broker's queue
         await channel.basic_client_ack(delivery_tag=envelope.delivery_tag)
 
@@ -96,7 +91,7 @@ class PulseWorkflow(object):
             'comments': data['comments'],
         }
 
-        commits, _ = patchanalysis.get_commits_for_bug(bug)
+        commits, _ = bugzilla.patchanalysis.get_commits_for_bug(bug)
 
     def analyzebug(self):
         attachmentId = 0
@@ -107,7 +102,7 @@ class PulseWorkflow(object):
             return
 
         # begin with the history to see if the latest comment it's a attachment
-        for changes in  self.bug['history'][-1]['changes']:
+        for changes in self.bug['history'][-1]['changes']:
             if 'attachment_id' in changes:
                 attachmentId = changes['attachment_id']
 
@@ -127,15 +122,17 @@ class PulseWorkflow(object):
 
                     paths_list = []
                     for diff in whatthepatch.parse_patch(attachmentData):
-                        old_path = diff.header.old_path[2:] if diff.header.old_path.\
-                            startswith('a/') else diff.header.old_path
-                        new_path = diff.header.new_path[2:] if diff.header.new_path.\
-                            startswith(
-                            'b/') else diff.header.new_pat
+                        old_path = (diff.header.old_path[2:]
+                                    if diff.header.old_path.startswith('a/')
+                                    else diff.header.old_path)
+                        new_path = (diff.header.new_path[2:]
+                                    if diff.header.new_path.startswith('b/')
+                                    else diff.header.new_path)
 
                         # Pushing the new path to the list that's going to be
                         # used to pass it to the clang-tiy as argument
                         paths_list.append(new_path)
+                        print(old_path)
 
             self.applypatch(attachmentData, paths_list)
 
@@ -144,5 +141,7 @@ class PulseWorkflow(object):
         # First revert everything and update
         result = self.repo.update(clean=True)
 
-        #if result['updated']:
+        # if result['updated']:
         #    print("{} Files Updated", format(result['updated']))
+
+        return result
