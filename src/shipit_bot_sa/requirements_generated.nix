@@ -945,4 +945,19 @@ self: {
     };
   };
 
+
+
+  "python-hglib" = python.mkDerivation {
+    name = "python-hglib-2.3";
+    src = pkgs.fetchurl { url = "https://pypi.python.org/packages/80/9c/1618281fc1ef0df4436b1435de6276452fefb46b111b3b00d3e20fcf5e17/python-hglib-2.3.tar.gz"; sha256 = "3d2e2eb2ecf73789635363784fdc6f0c0935256fe0263dfd6ed005a055c418df"; };
+    doCheck = commonDoCheck;
+    buildInputs = commonBuildInputs;
+    propagatedBuildInputs = [ ];
+    meta = with pkgs.stdenv.lib; {
+    homepage = "";
+      license = licenses.mit;
+       description = "Mercurial Python library";
+    };
+  };
+
 }

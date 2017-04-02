@@ -28,7 +28,7 @@ setup(
     ],
     install_requires=[
         'libmozdata',
-        'bot_common[pulse,taskcluster]',
+        'cli_common[pulse,taskcluster]',
     ],
     packages=find_packages(),
     include_package_data=True,

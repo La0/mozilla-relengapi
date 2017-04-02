@@ -35,6 +35,11 @@ setup(
     tests_require=read_requirements('requirements-dev.txt'),
     install_requires=read_requirements('requirements.txt'),
     packages=find_packages(),
+    extras_require=dict(
+        pulse=['aioamqp'],
+        taskcluster=['taskcluster'],
+        mercurial=['python-hglib'],
+    ),
     include_package_data=True,
     zip_safe=False,
     license='MPL2',
