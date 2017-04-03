@@ -16,7 +16,7 @@ APPS=\
 	releng-frontend \
 	shipit-uplift \
 	shipit-bot-uplift \
-	shipit-bot-sa \
+	shipit-bot-static-analysis \
 	shipit-pipeline \
 	shipit-signoff \
 	shipit-frontend
