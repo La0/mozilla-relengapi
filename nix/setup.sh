@@ -8,7 +8,8 @@ CONF=/etc/nix/nix.conf
 GROUP=nixbld
 
 function check_dep {
-	command -v "$1" >/dev/null 2>&1 || {
+	[[ $2 == "as_root"  ]] && pre="sudo bash -c" || pre=""
+	$pre command -v "$1" >/dev/null 2>&1 || {
 		echo >&2 "This script required $1 but it's not installed. Aborting.";
 		exit 1;
 	}
@@ -55,26 +56,28 @@ function update_nix {
 	nix-env -iA nixpkgs.nix nixpkgs.cacert"
 }
 
-# Check all dependencies
-check_dep sudo
-check_dep curl
-check_dep grep
-check_dep pgrep
-check_dep groupadd
-check_dep useradd
-
 # Check we run as standard user
 if [[ $EUID -eq 0 ]] ; then
 	echo "This script must not be run as root."
 	exit 1
 fi
 
-# Check we have sudo capabilities
+# Check sudo
+check_dep sudo
 echo "Testing sudo access"
-if sudo bash -c 'echo $UID > /dev/null'; then
+if ! as_root 'echo $UID > /dev/null'; then
 	echo "You do not seem to have sudo access. Aborting."
 	exit 1
 fi
+
+# Check other deps
+check_dep curl
+check_dep grep
+check_dep pgrep
+check_dep groupadd as_root
+check_dep useradd as_root
+
+
 
 # Check for init service : systemd or upstart
 INIT_PROC=$(ps -p 1)
