@@ -49,8 +49,8 @@ class PhabricatorReporter(Reporter):
             'Phabricator API must end with /api/'
 
         # Test authentication
-        user = self.request('user.whoami')
-        logger.info('Authenticated on phabricator', url=self.url, user=user['realName'])
+        self.user = self.request('user.whoami')
+        logger.info('Authenticated on phabricator', url=self.url, user=self.user['realName'])
 
     @property
     def hostname(self):
@@ -90,10 +90,26 @@ class PhabricatorReporter(Reporter):
             logger.info('Phabricator reporter only publishes Phabricator revisions. Skipping.')
             return
 
+        # Load existing comments for this revision
+        print(revision.id)
+        transactions = self.request(
+            'transaction.search',
+            objectIdentifier=revision.phid,
+        )
+
+        from pprint import pprint
+        for tr in transactions['data']:
+            if tr['type'] == 'inline' and tr['authorPHID'] == 'PHID-USER-w43yb6cga6xz4pugwjmq':
+                pprint(tr)
+
+
+        print('OK')
+        import sys
+        sys.exit()
+
         # Use only publishable issues
         issues = list(filter(lambda i: i.is_publishable(), issues))
         if issues:
-            stats.api.increment('report.phabricator.issues', len(issues))
 
             # First publish inlines as drafts
             inlines = [
@@ -102,14 +118,20 @@ class PhabricatorReporter(Reporter):
             ]
             logger.info('Added inline comments', ids=[i['id'] for i in inlines])
 
+            if not inlines:
+                logger.info('No new comment published, skipping Phabricator review')
+                return
+
             # Then publish top comment
             self.comment(
                 revision,
-                self.build_comment(
-                    issues=issues,
-                    diff_url=diff_url,
-                ),
+                'Test Phabricator global comment'
+                #self.build_comment(
+                #    issues=issues,
+                #    diff_url=diff_url,
+                #),
             )
+            stats.api.increment('report.phabricator.issues', len(inlines))
             stats.api.increment('report.phabricator')
             logger.info('Published phabricator comment')
 
@@ -138,6 +160,8 @@ class PhabricatorReporter(Reporter):
         '''
         assert isinstance(revision, PhabricatorRevision)
         assert isinstance(issue, Issue)
+
+        # Check if comment is already posted
 
         inline = self.request(
             'differential.createinline',
