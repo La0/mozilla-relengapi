@@ -58,17 +58,10 @@ TEMPLATES = {
     'backend-json-api': {}
 }
 
-PROJECTS = list(map(lambda x: x.replace('_', '-'),
-                    filter(lambda x: os.path.exists(os.path.join(SRC_DIR, x, 'default.nix')),
-                           os.listdir(SRC_DIR))))
-PROJECTS += ['postgresql']
-
-PG_CONF = {
-    'postgresql': {
-        'run': 'POSTGRESQL',
-        'run_options': {
-            'port': 9000,
-            'data_dir': os.path.join(TMP_DIR, 'postgresql'),
-        },
+POSTGRESQL_CONF = {
+    'run': 'POSTGRESQL',
+    'run_options': {
+        'port': 9000,
+        'data_dir': os.path.join(TMP_DIR, 'postgresql'),
     },
 }

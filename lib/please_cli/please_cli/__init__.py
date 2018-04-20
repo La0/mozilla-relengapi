@@ -23,6 +23,7 @@ import please_cli.shell
 import please_cli.terraform_route53_config
 import please_cli.update_dependencies
 import please_cli.utils
+import please_cli.projects
 
 
 CMD_HELP = '''
@@ -53,7 +54,7 @@ PROJECTS:
 {projects}
 
 '''.format(
-    projects=''.join([' - ' + i + '\n' for i in please_cli.config.PROJECTS]),
+    projects=please_cli.projects.ALL,
 )
 
 CMD_EPILOG = '''

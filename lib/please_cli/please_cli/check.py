@@ -7,6 +7,7 @@ from __future__ import absolute_import
 import cli_common.cli
 import click
 import click_spinner
+import please_cli.projects
 import please_cli.config
 import please_cli.shell
 import please_cli.utils
@@ -19,7 +20,7 @@ PROJECTS:
 {projects}
 
 '''.format(
-    projects=''.join([' - ' + i + '\n' for i in please_cli.config.PROJECTS]),
+    projects=please_cli.projects.ALL,
 )
 
 
@@ -32,7 +33,7 @@ PROJECTS:
 @click.argument(
     'project',
     required=True,
-    type=click.Choice(please_cli.config.PROJECTS),
+    type=click.Choice(please_cli.projects.ALL.names()),
     )
 @click.option(
     '--nix-shell',
@@ -44,21 +45,24 @@ PROJECTS:
     )
 @cli_common.cli.taskcluster_options
 @click.pass_context
-def cmd(ctx, project, nix_shell,
+def cmd(ctx, project_name, nix_shell,
         taskcluster_secret,
         taskcluster_client_id,
         taskcluster_access_token,
     ):
-    checks = please_cli.config.PROJECTS_CONFIG.get(project, {}).get('checks')
+    project = please_cli.projects.ALL.get(project_name)
+    if not project:
+        raise click.ClickException('Missing project {}'.format(project_name))
 
+    checks = project.get('checks')
     if not checks:
-        raise click.ClickException('No checks found for `{}` project.'.format(project))
+        raise click.ClickException('No checks found for `{}` project.'.format(project_name))
 
     for check_title, check_command in checks:
         click.echo(' => {}: '.format(check_title), nl=False)
         with click_spinner.spinner():
             returncode, output, error = ctx.invoke(please_cli.shell.cmd,
-                                                   project=project,
+                                                   project=project.name,
                                                    quiet=True,
                                                    command=check_command,
                                                    nix_shell=nix_shell,

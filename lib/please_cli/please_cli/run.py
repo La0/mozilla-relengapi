@@ -14,6 +14,7 @@ import please_cli.config
 import please_cli.create_certs
 import please_cli.shell
 import please_cli.utils
+import please_cli.projects
 
 CMD_HELP = '''
 Run PROJECT in development mode.
@@ -23,7 +24,7 @@ PROJECTS:
 {projects}
 
 '''.format(
-    projects=''.join([' - ' + i + '\n' for i in please_cli.config.PROJECTS]),
+    projects=please_cli.projects.ALL,
 )
 
 
@@ -36,7 +37,7 @@ PROJECTS:
 @click.argument(
     'project',
     required=True,
-    type=click.Choice(please_cli.config.PROJECTS),
+    type=click.Choice(please_cli.projects.ALL.names()),
     )
 @click.option(
     '-q', '--quiet',
@@ -51,18 +52,21 @@ PROJECTS:
     )
 @cli_common.cli.taskcluster_options
 @click.pass_context
-def cmd(ctx, project, quiet, nix_shell,
+def cmd(ctx, project_name, quiet, nix_shell,
         taskcluster_secret,
         taskcluster_client_id,
         taskcluster_access_token,
         ):
 
-    project_config = please_cli.config.PROJECTS_CONFIG.get(project, {})
-    run_type = project_config.get('run')
-    run_options = project_config.get('run_options', {})
+    project = please_cli.projects.ALL.get(project_name)
+    if not project:
+        raise click.ClickException('Missing application `{}`'.format(project))
+
+    run_type = project.get('run')
+    run_options = project.get('run_options', {})
 
     if not run_type:
-        raise click.ClickException('Application `{}` is not configured to be runnable.')
+        raise click.ClickException('Application `{}` is not configured to be runnable.'.format(project))
 
     host = run_options.get('host', 'localhost')
     if please_cli.config.IN_DOCKER:
@@ -77,10 +81,10 @@ def cmd(ctx, project, quiet, nix_shell,
     os.environ['DEBUG'] = 'true'
     os.environ['PROJECT_NAME'] = project_name
 
-    pg_host = please_cli.config.PROJECTS_CONFIG['postgresql']['run_options'].get('host', host)
-    pg_port = str(please_cli.config.PROJECTS_CONFIG['postgresql']['run_options']['port'])
+    pg_host = please_cli.projects.ALL['postgresql']['run_options'].get('host', host)
+    pg_port = str(please_cli.projects.ALL['postgresql']['run_options']['port'])
 
-    if 'postgresql' in project_config.get('requires', []):
+    if project.requires('postgresql'):
 
         dbname = 'services'
 
@@ -137,7 +141,7 @@ def cmd(ctx, project, quiet, nix_shell,
             pg_host, pg_port, dbname
         )
 
-    if 'redis' in project_config.get('requires', []):
+    if project.requires('redis'):
         # TODO: Support checking if redis is running and support starting redis using please.
         os.environ['REDIS_URL'] = 'redis://localhost:6379'
 
@@ -229,12 +233,12 @@ def cmd(ctx, project, quiet, nix_shell,
             os.environ[env_name] = env_value
 
         # XXX: once we move please_cli.config.PROJECTS to nix we wont need this
-        for require in project_config.get('requires', []):
-            env_name = 'WEBPACK_{}_URL'.format(require.replace('-', '_').upper())
+        for require in project.list_required():
+            env_name = 'WEBPACK_{}_URL'.format(require.name.replace('-', '_').upper())
             env_value = '{}://{}:{}'.format(
-                please_cli.config.PROJECTS_CONFIG[require]['run_options'].get('schema', 'https'),
-                please_cli.config.PROJECTS_CONFIG[require]['run_options'].get('host', host),
-                please_cli.config.PROJECTS_CONFIG[require]['run_options']['port'],
+                require['run_options'].get('schema', 'https'),
+                require['run_options'].get('host', host),
+                require['run_options']['port'],
             )
             os.environ[env_name] = env_value
 

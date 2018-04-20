@@ -18,6 +18,7 @@ import click_spinner
 import please_cli.build
 import please_cli.config
 import please_cli.utils
+import please_cli.projects
 import push.image
 import push.registry
 import taskcluster.exceptions
@@ -31,7 +32,7 @@ log = cli_common.log.get_logger(__name__)
 @click.argument(
     'project',
     required=True,
-    type=click.Choice(please_cli.config.PROJECTS),
+    type=click.Choice(please_cli.projects.ALL.names()),
     )
 @click.option(
     '--s3-bucket',
@@ -192,7 +193,7 @@ def cmd_S3(ctx,
 @click.argument(
     'project',
     required=True,
-    type=click.Choice(please_cli.config.PROJECTS),
+    type=click.Choice(please_cli.projects.ALL.names()),
     )
 @click.option(
     '--heroku-app',
@@ -303,7 +304,7 @@ def cmd_HEROKU(ctx,
 @click.argument(
     'project',
     required=True,
-    type=click.Choice(please_cli.config.PROJECTS),
+    ttype=click.Choice(please_cli.projects.ALL.names()),
     )
 @click.option(
     '--channel',
@@ -470,7 +471,7 @@ def cmd_TASKCLUSTER_HOOK(ctx,
 @click.argument(
     'project',
     required=True,
-    type=click.Choice(please_cli.config.PROJECTS),
+    ttype=click.Choice(please_cli.projects.ALL.names()),
     )
 @click.option(
     '--channel',

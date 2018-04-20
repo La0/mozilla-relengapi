@@ -6,6 +6,7 @@ from __future__ import absolute_import
 
 import click
 import please_cli.config
+import please_cli.projects
 
 NAGIOS_TEMPLATE = ''''%s' => {
     parents        => 'fw1.private.releng.scl3.mozilla.net',
@@ -32,16 +33,16 @@ def cmd(channel):
         channels = [channel]
 
 
-    for project_id in sorted(please_cli.config.PROJECTS_CONFIG.keys()):
-        project = please_cli.config.PROJECTS_CONFIG[project_id].get('deploy_options')
+    for project in please_cli.projects.ALL.list_deployable():
+        project_deploy_options = project.get('deploy_options')
 
-        if project:
+        if project_deploy_options:
             for channel in sorted(channels):
 
-                if channel not in project or 'url' not in project[channel]:
+                if channel not in project_deploy_options or 'url' not in project_deploy_options[channel]:
                     continue
 
-                project_url = project[channel]['url']
+                project_url = project_deploy_options[channel]['url']
                 project_url = project_url.lstrip('https')
                 project_url = project_url.lstrip('http')
                 project_url = project_url.lstrip('://')

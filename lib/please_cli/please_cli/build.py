@@ -8,7 +8,6 @@ import os
 import subprocess
 import tempfile
 
-import awscli.clidriver
 import cli_common.cli
 import cli_common.command
 import cli_common.taskcluster
@@ -16,6 +15,7 @@ import click
 import click_spinner
 import please_cli.config
 import please_cli.utils
+import please_cli.projects
 
 
 @click.command(
@@ -25,7 +25,7 @@ import please_cli.utils
 @click.argument(
     'project',
     required=True,
-    type=click.Choice(please_cli.config.PROJECTS),
+    type=click.Choice(please_cli.projects.ALL.names()),
     )
 @click.option(
     '--channel',
@@ -188,7 +188,7 @@ def cmd(project,
 @click.argument(
     'project',
     required=True,
-    type=click.Choice(please_cli.config.PROJECTS),
+    type=click.Choice(please_cli.projects.ALL.names()),
     )
 @click.option(
     '--nix-build',

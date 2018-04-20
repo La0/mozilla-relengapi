@@ -6,7 +6,6 @@ from __future__ import absolute_import
 
 import datetime
 import json
-import os
 
 import slugid
 
@@ -14,15 +13,11 @@ import cli_common.taskcluster
 import click
 import click_spinner
 import please_cli.config
-
-DEPLOYABLE_PROJECTS = {}
-for project_name, project_config in please_cli.config.PROJECTS_CONFIG.items():
-    if 'deploy' in project_config:
-        DEPLOYABLE_PROJECTS[project_name] = project_config
+import please_cli.projects
 
 
 def get_build_task(index,
-                   project,
+                   project_name,
                    task_group_id,
                    parent_task,
                    github_commit,
@@ -33,10 +28,12 @@ def get_build_task(index,
                    cache_region=None,
                    ):
 
-    project_config = please_cli.config.PROJECTS_CONFIG.get(project, {})
+    project = please_cli.projects.ALL.get(project_name)
+    if not project:
+        raise Exception('Missing project {}'.format(project_name))
 
     command = [
-        './please', '-vv', 'tools', 'build', project,
+        './please', '-vv', 'tools', 'build', project.name,
         '--taskcluster-secret=' + taskcluster_secret,
         '--no-interactive',
     ]
@@ -55,7 +52,7 @@ def get_build_task(index,
         {
             'name': '1.{index:02}. Building {project}'.format(
                 index=index + 1,
-                project=project,
+                project=project.name,
             ),
             'description': '',
             'owner': owner,
@@ -67,7 +64,7 @@ def get_build_task(index,
 
 
 def get_deploy_task(index,
-                    project,
+                    project_name,
                     task_group_id,
                     parent_task,
                     github_commit,
@@ -76,18 +73,19 @@ def get_deploy_task(index,
                     taskcluster_secret,
                     ):
 
-    project_config = please_cli.config.PROJECTS_CONFIG.get(project, {})
-    deploy_type = project_config.get('deploy')
-    deploy_options = project_config.get('deploy_options', {}).get(channel, {})
+    project = please_cli.projects.ALL.get(project_name)
+    if not project:
+        raise Exception('Missing project {}'.format(project_name))
+    deploy_type = project.get('deploy')
+    deploy_options = project.get('deploy_options', {}).get(channel, {})
     scopes = []
 
     if deploy_type == 'S3':
         project_csp = []
         for url in deploy_options.get('csp', []):
             project_csp.append('--csp="{}"'.format(url))
-        for require in project_config.get('requires', []):
-            require_config = please_cli.config.PROJECTS_CONFIG.get(require, {})
-            require_deploy_options = require_config.get('deploy_options', {}).get(channel, {})
+        for require in project.list_required():
+            require_deploy_options = require.get('deploy_options', {}).get(channel, {})
             require_url = require_deploy_options.get('url')
             if require_url:
                 project_csp.append('--csp="{}"'.format(require_url))
@@ -97,9 +95,8 @@ def get_deploy_task(index,
         project_envs.append('--env="release-channel: {}"'.format(channel))
         for env_name, env_value in deploy_options.get('envs', {}).items():
             project_envs.append('--env="{}: {}"'.format(env_name, env_value))
-        for require in project_config.get('requires', []):
-            require_config = please_cli.config.PROJECTS_CONFIG.get(require, {})
-            require_deploy_options = require_config.get('deploy_options', {}).get(channel, {})
+        for require in project.list_required():
+            require_deploy_options = require.get('deploy_options', {}).get(channel, {})
             require_url = require_deploy_options.get('url')
             if require_url:
                 project_envs.append('--env="{}-url: {}"'.format(require, require_url))
@@ -315,11 +312,11 @@ def cmd(ctx,
     click.echo(' => Checking cache which project needs to be rebuilt')
     build_projects = []
     project_hashes = dict()
-    for project in sorted(DEPLOYABLE_PROJECTS.keys()):
+    for project in please_cli.projects.ALL.list_deployable():
         click.echo('     => ' + project)
         project_exists_in_cache, project_hash = ctx.invoke(
             please_cli.check_cache.cmd,
-            project=project,
+            project=project.name,
             cache_urls=cache_urls,
             nix_instantiate=nix_instantiate,
             channel=channel,
@@ -337,13 +334,13 @@ def cmd(ctx,
         # TODO: get status for our index branch
         status = {}
 
-        for project in sorted(DEPLOYABLE_PROJECTS.keys()):
-            project_hash = status.get(project)
+        for project in please_cli.projects.ALL.list_deployable():
+            project_hash = status.get(project.name)
 
             if project_hash == project_hashes[project]:
                 continue
 
-            if channel not in DEPLOYABLE_PROJECTS[project].get('deploy_options', {}):
+            if channel not in project.get('deploy_options', {}):
                 continue
 
             deploy_projects.append(project)

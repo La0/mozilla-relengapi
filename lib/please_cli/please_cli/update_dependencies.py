@@ -11,6 +11,7 @@ import click
 import click_spinner
 import please_cli.config
 import please_cli.utils
+import please_cli.projects
 
 CMD_HELP = '''
 Update Nix dependencies for a PROJECT.
@@ -20,7 +21,7 @@ PROJECTS:
 {projects}
 
 '''.format(
-    projects=''.join([' - ' + i + '\n' for i in please_cli.config.PROJECTS]),
+    projects=please_cli.projects.ALL.names(),
 )
 
 
@@ -33,7 +34,7 @@ PROJECTS:
 @click.argument(
     'project',
     required=True,
-    type=click.Choice(please_cli.config.PROJECTS),
+    type=click.Choice(please_cli.projects.ALL.names()),
     )
 @click.option(
     '--nix-shell',

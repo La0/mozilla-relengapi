@@ -11,6 +11,7 @@ import cli_common.cli
 import cli_common.log
 import click
 import please_cli.config
+import please_cli.projects
 
 log = cli_common.log.get_logger(__name__)
 
@@ -44,7 +45,7 @@ EXAMPLES:
   [nix-shell] ~/d/m/s/s/releng_frontend % exit
 
 '''.format(
-    projects=''.join([' - ' + i + '\n' for i in please_cli.config.PROJECTS]),
+    projects=please_cli.projects.ALL,
 )
 
 
@@ -57,7 +58,7 @@ EXAMPLES:
 @click.argument(
     'project',
     required=True,
-    type=click.Choice(please_cli.config.PROJECTS),
+    type=click.Choice(please_cli.projects.ALL.names()),
     )
 @click.option(
     '--zsh',

@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 import click
-import please_cli.config
+import please_cli.projects
 
 HEROKU_COMMENT = '## Heroku {channel} app cnames ##'
 
@@ -120,7 +120,7 @@ def cmd():
     HEROKU_SHIPIT = dict()
     S3 = []
 
-    for (project_id, project) in please_cli.config.PROJECTS_CONFIG.items():
+    for project in please_cli.projects.ALL:
 
         project_deploy_options = project.get('deploy_options')
 
@@ -143,34 +143,34 @@ def cmd():
 
 
                 if project.get('deploy') == 'HEROKU':
-                    if project_id.startswith('releng-'):
+                    if project.name.startswith('releng-'):
                         HEROKU_RELENG.setdefault(channel, [])
                         HEROKU_RELENG[channel].append(dict(
-                            name=to_route53_name(project_id, channel),
+                            name=to_route53_name(project.name, channel),
                             domain=domain,
                             dns=project_deploy_options[channel]['dns'],
                         ))
-                    if project_id.startswith('shipit-'):
+                    if project.name.startswith('shipit-'):
                         HEROKU_SHIPIT.setdefault(channel, [])
                         HEROKU_SHIPIT[channel].append(dict(
-                            name=to_route53_name(project_id, channel),
+                            name=to_route53_name(project.name, channel),
                             domain=domain,
                             dns=project_deploy_options[channel]['dns'],
                         ))
 
                 if project.get('deploy') == 'S3':
-                    if project_id == 'releng-frontend':
+                    if project.name == 'releng-frontend':
                         if channel == 'production':
                             alias = 'www'
                         else:
                             alias = channel
-                    elif project_id == 'shipit-frontend':
+                    elif project.name == 'shipit-frontend':
                         if channel == 'production':
                             alias = 'shipit'
                         else:
                             alias = 'shipit.' + channel
                     else:
-                        alias = project_id.lstrip('releng-').lstrip('shipit-')
+                        alias = project.name.lstrip('releng-').lstrip('shipit-')
                         alias = '{}.{}'.format(alias, channel)
                         if channel == 'production':
                             alias = alias.rstrip('.production')

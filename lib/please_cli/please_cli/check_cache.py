@@ -15,6 +15,7 @@ import click
 import click_spinner
 import please_cli.config
 import please_cli.utils
+import please_cli.projects
 
 log = cli_common.log.get_logger(__name__)
 
@@ -32,7 +33,7 @@ class Derive:
 @click.argument(
     'project',
     required=True,
-    type=click.Choice(please_cli.config.PROJECTS),
+    type=click.Choice(please_cli.projects.ALL.names()),
     )
 @click.option(
     '--cache-url',
