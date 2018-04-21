@@ -7,11 +7,10 @@ from __future__ import absolute_import
 import os
 
 import click
-import cookiecutter.main
 
+import cookiecutter.main
 import please_cli.config
 import please_cli.utils
-
 
 CMD_HELP = '''
 Create a new PROJECT from a TEMPLATE

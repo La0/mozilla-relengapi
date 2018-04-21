@@ -7,15 +7,15 @@ from __future__ import absolute_import
 import os
 import subprocess
 
+import click
 import requests
 
 import cli_common.command
 import cli_common.log
-import click
 import click_spinner
 import please_cli.config
-import please_cli.utils
 import please_cli.projects
+import please_cli.utils
 
 log = cli_common.log.get_logger(__name__)
 

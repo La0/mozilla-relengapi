@@ -5,6 +5,7 @@
 from __future__ import absolute_import
 
 import click
+
 import please_cli.config
 import please_cli.projects
 

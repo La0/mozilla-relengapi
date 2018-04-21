@@ -4,11 +4,12 @@
 
 from __future__ import absolute_import
 
-import cli_common.cli
 import click
+
+import cli_common.cli
 import click_spinner
-import please_cli.projects
 import please_cli.config
+import please_cli.projects
 import please_cli.shell
 import please_cli.utils
 

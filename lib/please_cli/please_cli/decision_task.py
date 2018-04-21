@@ -7,10 +7,10 @@ from __future__ import absolute_import
 import datetime
 import json
 
+import click
 import slugid
 
 import cli_common.taskcluster
-import click
 import click_spinner
 import please_cli.config
 import please_cli.projects

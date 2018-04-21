@@ -10,11 +10,11 @@ import shutil
 import subprocess
 
 import click
-import click_spinner
 
-import cli_common.log
 import cli_common.cli
 import cli_common.command
+import cli_common.log
+import click_spinner
 import please_cli.config
 import please_cli.utils
 

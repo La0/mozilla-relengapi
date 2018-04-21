@@ -7,9 +7,10 @@ from __future__ import absolute_import
 import os
 import subprocess
 
+import click
+
 import cli_common.cli
 import cli_common.log
-import click
 import please_cli.config
 import please_cli.projects
 

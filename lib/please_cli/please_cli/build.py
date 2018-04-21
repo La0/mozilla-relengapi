@@ -8,14 +8,15 @@ import os
 import subprocess
 import tempfile
 
+import click
+
 import cli_common.cli
 import cli_common.command
 import cli_common.taskcluster
-import click
 import click_spinner
 import please_cli.config
-import please_cli.utils
 import please_cli.projects
+import please_cli.utils
 
 
 @click.command(

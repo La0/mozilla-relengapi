@@ -6,12 +6,13 @@ from __future__ import absolute_import
 
 import subprocess
 
-import cli_common.command
 import click
+
+import cli_common.command
 import click_spinner
 import please_cli.config
-import please_cli.utils
 import please_cli.projects
+import please_cli.utils
 
 CMD_HELP = '''
 Update Nix dependencies for a PROJECT.

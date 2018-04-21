@@ -1,7 +1,10 @@
 import os.path
-import yaml
-from please_cli.config import SRC_DIR, POSTGRESQL_CONF
 from collections import OrderedDict
+
+import yaml
+
+from please_cli.config import POSTGRESQL_CONF
+from please_cli.config import SRC_DIR
 
 
 class Project(object):

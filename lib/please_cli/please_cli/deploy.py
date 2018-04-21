@@ -9,20 +9,20 @@ import os
 import shutil
 import tempfile
 
+import click
+import taskcluster.exceptions
+
 import awscli.clidriver
 import cli_common.cli
 import cli_common.log
 import cli_common.taskcluster
-import click
 import click_spinner
 import please_cli.build
 import please_cli.config
-import please_cli.utils
 import please_cli.projects
+import please_cli.utils
 import push.image
 import push.registry
-import taskcluster.exceptions
-
 
 log = cli_common.log.get_logger(__name__)
 
@@ -304,7 +304,7 @@ def cmd_HEROKU(ctx,
 @click.argument(
     'project',
     required=True,
-    ttype=click.Choice(please_cli.projects.ALL.names()),
+    type=click.Choice(please_cli.projects.ALL.names()),
     )
 @click.option(
     '--channel',
@@ -471,7 +471,7 @@ def cmd_TASKCLUSTER_HOOK(ctx,
 @click.argument(
     'project',
     required=True,
-    ttype=click.Choice(please_cli.projects.ALL.names()),
+    type=click.Choice(please_cli.projects.ALL.names()),
     )
 @click.option(
     '--channel',
