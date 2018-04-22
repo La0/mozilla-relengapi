@@ -84,7 +84,7 @@ def get_deploy_task(index,
         project_csp = []
         for url in deploy_options.get('csp', []):
             project_csp.append('--csp="{}"'.format(url))
-        for require in project.list_required():
+        for require in please_cli.projects.ALL.list_required(project):
             require_deploy_options = require.get('deploy_options', {}).get(channel, {})
             require_url = require_deploy_options.get('url')
             if require_url:
@@ -95,7 +95,7 @@ def get_deploy_task(index,
         project_envs.append('--env="release-channel: {}"'.format(channel))
         for env_name, env_value in deploy_options.get('envs', {}).items():
             project_envs.append('--env="{}: {}"'.format(env_name, env_value))
-        for require in project.list_required():
+        for require in please_cli.projects.ALL.list_required(project):
             require_deploy_options = require.get('deploy_options', {}).get(channel, {})
             require_url = require_deploy_options.get('url')
             if require_url:

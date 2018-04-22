@@ -32,7 +32,7 @@ PROJECTS:
     help=CMD_HELP,
     )
 @click.argument(
-    'project',
+    'project_name',
     required=True,
     type=click.Choice(please_cli.projects.ALL.names()),
     )
@@ -59,13 +59,13 @@ def cmd(ctx, project_name, nix_shell,
     if not checks:
         raise click.ClickException('No checks found for `{}` project.'.format(project_name))
 
-    for check_title, check_command in checks:
-        click.echo(' => {}: '.format(check_title), nl=False)
+    for check in checks:
+        click.echo(' => {}: '.format(check['name']), nl=False)
         with click_spinner.spinner():
             returncode, output, error = ctx.invoke(please_cli.shell.cmd,
                                                    project=project.name,
                                                    quiet=True,
-                                                   command=check_command,
+                                                   command=check['cmd'],
                                                    nix_shell=nix_shell,
                                                    taskcluster_secret=taskcluster_secret,
                                                    taskcluster_client_id=taskcluster_client_id,

@@ -36,7 +36,7 @@ PROJECTS:
     help=CMD_HELP,
     )
 @click.argument(
-    'project',
+    'project_name',
     required=True,
     type=click.Choice(please_cli.projects.ALL.names()),
     )
@@ -74,13 +74,12 @@ def cmd(ctx, project_name, quiet, nix_shell,
         host = run_options.get('host', '0.0.0.0')
     port = str(run_options.get('port', 8000))
     schema = 'https://'
-    project_name = project.replace('-', '_')
     ca_cert_file = os.path.join(please_cli.config.TMP_DIR, 'certs', 'ca.crt')
     server_cert_file = os.path.join(please_cli.config.TMP_DIR, 'certs', 'server.crt')
     server_key_file = os.path.join(please_cli.config.TMP_DIR, 'certs', 'server.key')
 
     os.environ['DEBUG'] = 'true'
-    os.environ['PROJECT_NAME'] = project_name
+    os.environ['PROJECT_NAME'] = project.folder # with _
 
     pg_host = please_cli.projects.ALL['postgresql']['run_options'].get('host', host)
     pg_port = str(please_cli.projects.ALL['postgresql']['run_options']['port'])
@@ -234,7 +233,7 @@ def cmd(ctx, project_name, quiet, nix_shell,
             os.environ[env_name] = env_value
 
         # XXX: once we move please_cli.config.PROJECTS to nix we wont need this
-        for require in project.list_required():
+        for require in please_cli.projects.ALL.list_required(project):
             env_name = 'WEBPACK_{}_URL'.format(require.name.replace('-', '_').upper())
             env_value = '{}://{}:{}'.format(
                 require['run_options'].get('schema', 'https'),
@@ -252,7 +251,7 @@ def cmd(ctx, project_name, quiet, nix_shell,
 
     click.echo(' => Running {} on {}{}:{} ...'.format(project, schema, host, port))
     returncode, output, error = ctx.invoke(please_cli.shell.cmd,
-                                           project=project,
+                                           project=project.name,
                                            quiet=quiet,
                                            command=' '.join(command),
                                            nix_shell=nix_shell,

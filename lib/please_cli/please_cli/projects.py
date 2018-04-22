@@ -26,14 +26,17 @@ class Project(object):
             self.config = config
             self.path = None
 
+    def __str__(self):
+        return self.name
+
     def __getitem__(self, name):
         return self.config.get(name)
 
+    def get(self, name, default=None):
+        return self.config.get(name, default)
+
     def requires(self, requirement):
         return requirement in self.config.get('requires', [])
-
-    def list_required(self):
-        pass
 
     def check(self):
         '''
@@ -67,6 +70,9 @@ class Projects(object):
     def __getitem__(self, name):
         return self.projects.get(name)
 
+    def get(self, name, default=None):
+        return self.projects.get(name, default)
+
     def names(self):
         return list(self.projects.keys())
 
@@ -74,7 +80,20 @@ class Projects(object):
         return self.projects.__itervalues__()
 
     def list_deployable(self):
-        return list(filter(lambda p : p.is_deployable(), self.projects))
+        return list(filter(lambda p : p.is_deployable(), self.projects.values()))
+
+    def list_required(self, project):
+        '''
+        List all required projects names for this project
+        '''
+        assert isinstance(project, Project)
+
+        return [
+            self.projects[require_name]
+            for require_name in project.get('requires', [])
+            if require_name in self.projects
+        ]
+
 
 # Shared instance used throughout please_cli
 ALL = Projects()
