@@ -151,7 +151,7 @@ def get_deploy_task(index,
         {
             'name': '3.{index:02}. Deploying {project}'.format(
                 index=index + 1,
-                project=project,
+                project=project.name,
             ),
             'description': '',
             'owner': owner,
@@ -313,7 +313,7 @@ def cmd(ctx,
     build_projects = []
     project_hashes = dict()
     for project in please_cli.projects.ALL.list_deployable():
-        click.echo('     => ' + project)
+        click.echo('     => {}'.format(project))
         project_exists_in_cache, project_hash = ctx.invoke(
             please_cli.check_cache.cmd,
             project=project.name,
@@ -323,7 +323,7 @@ def cmd(ctx,
             indent=8,
             interactive=False,
         )
-        project_hashes[project] = project_hash
+        project_hashes[project.name] = project_hash
         if not project_exists_in_cache:
             build_projects.append(project)
 
@@ -337,13 +337,13 @@ def cmd(ctx,
         for project in please_cli.projects.ALL.list_deployable():
             project_hash = status.get(project.name)
 
-            if project_hash == project_hashes[project]:
+            if project_hash == project_hashes[project.name]:
                 continue
 
             if channel not in project.get('deploy_options', {}):
                 continue
 
-            deploy_projects.append(project)
+            deploy_projects.append(project.name)
 
     click.echo(' => Creating taskcluster tasks definitions')
     tasks = []

@@ -92,7 +92,7 @@ def cmd(ctx, project_name, quiet, nix_shell,
         with click_spinner.spinner():
             result, output, error = ctx.invoke(
                 please_cli.shell.cmd,
-                project=project,
+                project=project.name,
                 quiet=True,
                 command=' '.join([
                     'psql',
@@ -126,7 +126,7 @@ def cmd(ctx, project_name, quiet, nix_shell,
             with click_spinner.spinner():
                 result, output, error = ctx.invoke(
                     please_cli.shell.cmd,
-                    project=project,
+                    project=project.name,
                     command=' '.join([
                         'createdb',
                         '-h', pg_host,
@@ -152,7 +152,7 @@ def cmd(ctx, project_name, quiet, nix_shell,
             click.echo(' => Initialize database folder `{}` ... '.format(data_dir), nl=False)
             with click_spinner.spinner():
                 result, output, error = ctx.invoke(please_cli.shell.cmd,
-                                                   project=project,
+                                                   project=project.name,
                                                    command='initdb -D {} --auth=trust'.format(data_dir),
                                                    nix_shell=nix_shell,
                                                    )
