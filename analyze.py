@@ -3,11 +3,16 @@ import hashlib
 from datetime import datetime
 import os
 import json
+import sys
 
 INDEX_URL = 'https://index.taskcluster.net/v1/tasks/project.releng.services.project.{env}.static_analysis_bot.phabricator.diff'
 TASK_URL = 'https://queue.taskcluster.net/v1/task/{taskId}/status/'
 CACHE = os.path.realpath(os.path.join(os.path.dirname(__file__), 'cache'))
 assert os.path.isdir(CACHE), 'mkdir {}'.format(CACHE)
+
+
+def err(msg):
+    sys.stderr.write('{}\n'.format(msg))
 
 
 def fetch(url, params=None, use_cache=True):
@@ -25,7 +30,7 @@ def fetch(url, params=None, use_cache=True):
 
     # Cache payload
     json.dump(data, open(path, 'w'), indent=4)
-    print('Cached {}'.format(url))
+    err('Cached {}'.format(url))
 
     return data
 
@@ -67,7 +72,7 @@ class Env(object):
         self.states = {}
 
     def __str__(self):
-        return '{}: {} tasks'.format(self.name, len(self.tasks))
+        return self.name
 
     def load_index(self, batch_size=500):
         '''
@@ -85,7 +90,7 @@ class Env(object):
                 params,
                 use_cache=nb > 1 or self.cache_root,
             )
-            print('Loaded {} page {}'.format(self.name, nb))
+            err('Loaded {} page {}'.format(self.name, nb))
             nb += 1
 
             # Use all tasks
@@ -130,13 +135,21 @@ def compare(env_a, env_b):
         for diff_id in common
     ]
 
-    # Calc same state
-    same_state = sum([
-        a.state == b.state
+    # List different final states
+    diff_states = [
+        (a, b)
         for a, b in tasks
-    ])
+        if a.state != b.state and a.runtime and b.runtime
+    ]
+
+    # Count completed from final diff states
+    diff_completed_a, diff_completed_b = map(sum, zip(*[
+        (a.state == 'completed', b.state == 'completed')
+        for a, b in diff_states
+    ]))
 
     # Calc runtimes
+    runtime_stats = []
     for env_tasks in zip(*tasks):
         runtimes = [
             task.runtime.total_seconds()
@@ -146,27 +159,35 @@ def compare(env_a, env_b):
         total = sum(runtimes)
         nb = len(runtimes)
         average = total / nb
-        print('total = {}, nb = {}, average = {}'.format(total, nb, average))
+        runtime_stats.append((total, nb, average))
 
 
-    # Inclusion stats
+    # Display stats
     nb = len(common)
     nb_a = len(env_a.diffs)
     nb_b = len(env_b.diffs)
-    print('{}: {}/{} - {:.2f}%'.format(env_a.name, nb, nb_a, nb * 100.0 / nb_a))
-    print('{}: {}/{} - {:.2f}%'.format(env_b.name, nb, nb_b, nb * 100.0 / nb_b))
+    print('-'*80)
+    print('{} vs. {}'.format(env_a.name, env_b.name))
+    print('-'*80)
+    print('tasks {}: {}/{} - {:.2f}%'.format(env_a.name, nb, nb_a, nb * 100.0 / nb_a))
+    print('tasks {}: {}/{} - {:.2f}%'.format(env_b.name, nb, nb_b, nb * 100.0 / nb_b))
+    print('time {} total = {}, nb = {}, average = {}'.format(env_a, *runtime_stats[0]))
+    print('time {} total = {}, nb = {}, average = {}'.format(env_b, *runtime_stats[1]))
+    print('{}/{} diff states'.format(len(diff_states), len(tasks)))
+    print('{} : {}/{} diff completed'.format(env_a.name, diff_completed_a, len(diff_states)))
+    print('{} : {}/{} diff completed'.format(env_b.name, diff_completed_b, len(diff_states)))
 
-    print(same_state)
+    completion = diff_completed_a > diff_completed_b and (env_a, env_b) or (env_b, env_a)
+    print('{} has more diff completion than {}'.format(*completion))
+    runtime = runtime_stats[0][-1] < runtime_stats[1][-1] and (env_a, env_b) or (env_b, env_a)
+    print('{} is faster on average than {}'.format(*runtime))
 
 
 if __name__ == '__main__':
 
-    testing = Env('testing', cache_root=True)
-    staging = Env('staging', cache_root=True)
+    testing = Env('testing')
+    staging = Env('staging')
     production = Env('production')
-
-    print(testing)
-    print(staging)
 
     compare(testing, staging)
     compare(staging, production)
