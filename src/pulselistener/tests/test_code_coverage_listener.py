@@ -5,7 +5,7 @@ import os
 import responses
 
 from pulselistener.lib.bus import MessageBus
-from pulselistener.listener import CodeCoverage
+from pulselistener.code_coverage import CodeCoverage
 
 FIXTURES_DIR = os.path.join(os.path.dirname(__file__), 'fixtures')
 
