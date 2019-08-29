@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import asyncio
 import json
 import os
 
@@ -89,64 +90,70 @@ async def test_parse(mock_taskcluster):
     }) is None
 
 
-@responses.activate
-async def test_wrong_branch(mock_taskcluster):
-    bus = MessageBus()
-    with open(os.path.join(FIXTURES_DIR, 'bNq-VIT-Q12o6nXcaUmYNQ.json')) as f:
-        responses.add(responses.GET, 'http://taskcluster.test/queue/v1/task-group/bNq-VIT-Q12o6nXcaUmYNQ/list', json=json.load(f), status=200, match_querystring=True)  # noqa
+def run_async_parser(hook, group_id):
+    '''
+    Helper to run the asynchronous parser using responses in the same event loop
+    '''
+    async def _check():
+        with open(os.path.join(FIXTURES_DIR, f'{group_id}.json')) as f:
+            responses.add(
+                responses.GET,
+                f'http://taskcluster.test/queue/v1/task-group/{group_id}/list',
+                json=json.load(f),
+                status=200,
+            )
+        return await hook.parse({
+            'taskGroupId': group_id,
+        })
 
+    loop = asyncio.new_event_loop()
+    return loop.run_until_complete(_check())
+
+
+@responses.activate
+def test_wrong_branch(mock_taskcluster):
+    bus = MessageBus()
     hook = CodeCoverage({
       'hookId': 'services-staging-codecoverage/bot'
     }, bus)
 
-    assert await hook.parse({
-        'taskGroupId': 'bNq-VIT-Q12o6nXcaUmYNQ'
-    }) is None
+    assert run_async_parser(hook, 'bNq-VIT-Q12o6nXcaUmYNQ') is None
 
 
 @responses.activate
-async def test_success(mock_taskcluster):
+def test_success(mock_taskcluster):
     bus = MessageBus()
-    with open(os.path.join(FIXTURES_DIR, 'RS0UwZahQ_qAcdZzEb_Y9g.json')) as f:
-        responses.add(responses.GET, 'http://taskcluster.test/queue/v1/task-group/RS0UwZahQ_qAcdZzEb_Y9g/list', json=json.load(f), status=200, match_querystring=True)  # noqa
-
     hook = CodeCoverage({
       'hookId': 'services-staging-codecoverage/bot'
     }, bus)
 
-    assert await hook.parse({
-        'taskGroupId': 'RS0UwZahQ_qAcdZzEb_Y9g'
-    }) == [{'REPOSITORY': 'https://hg.mozilla.org/mozilla-central', 'REVISION': 'ec3dd3ee2ae4b3a63529a912816a110e925eb2d0'}]
+    assert run_async_parser(hook, 'RS0UwZahQ_qAcdZzEb_Y9g') == [
+        {'REPOSITORY': 'https://hg.mozilla.org/mozilla-central', 'REVISION': 'ec3dd3ee2ae4b3a63529a912816a110e925eb2d0'}
+    ]
 
 
 @responses.activate
-async def test_success_windows(mock_taskcluster):
+def test_success_windows(mock_taskcluster):
     bus = MessageBus()
-    with open(os.path.join(FIXTURES_DIR, 'MibGDsa4Q7uFNzDf7EV6nw.json')) as f:
-        responses.add(responses.GET, 'http://taskcluster.test/queue/v1/task-group/MibGDsa4Q7uFNzDf7EV6nw/list', json=json.load(f), status=200, match_querystring=True)  # noqa
-
     hook = CodeCoverage({
       'hookId': 'services-staging-codecoverage/bot'
     }, bus)
 
-    assert await hook.parse({
-        'taskGroupId': 'MibGDsa4Q7uFNzDf7EV6nw'
-    }) == [{'REPOSITORY': 'https://hg.mozilla.org/mozilla-central', 'REVISION': '63519bfd42ee379f597c0357af2e712ec3cd9f50'}]
+    assert run_async_parser(hook, 'MibGDsa4Q7uFNzDf7EV6nw') == [
+        {'REPOSITORY': 'https://hg.mozilla.org/mozilla-central', 'REVISION': '63519bfd42ee379f597c0357af2e712ec3cd9f50'}
+    ]
 
 
 @responses.activate
-async def test_success_try(mock_taskcluster):
+def test_success_try(mock_taskcluster):
     bus = MessageBus()
-    with open(os.path.join(FIXTURES_DIR, 'FG3goVnCQfif8ZEOaM_4IA.json')) as f:
-        responses.add(responses.GET, 'http://taskcluster.test/queue/v1/task-group/FG3goVnCQfif8ZEOaM_4IA/list', json=json.load(f), status=200, match_querystring=True)  # noqa
-
     hook = CodeCoverage({
       'hookId': 'services-staging-codecoverage/bot'
     }, bus)
 
-    assert await hook.parse({
-        'taskGroupId': 'FG3goVnCQfif8ZEOaM_4IA'
-    }) == [{'REPOSITORY': 'https://hg.mozilla.org/try', 'REVISION': '066cb18ba95a7efe144e729713c429e422d9f95b'}]
+    assert run_async_parser(hook, 'FG3goVnCQfif8ZEOaM_4IA') == [
+        {'REPOSITORY': 'https://hg.mozilla.org/try', 'REVISION': '066cb18ba95a7efe144e729713c429e422d9f95b'}
+    ]
 
 
 def test_hook_group(mock_taskcluster):
